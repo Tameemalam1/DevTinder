@@ -1,2 +1,1 @@
-# DevTinder
-TInder For Developers
+"dev": "nodemon src/app.js"
