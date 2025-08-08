@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const connectDB = require("./config/database");
 const User = require("./model/user");
-app.use(express.json());
+app.use(express.json()); //middleware 
 
 // post api
 app.post("/signup",async (req,res)=>{
@@ -58,11 +58,19 @@ app.delete("/user", async (req,res) => {
 
 
 // update API
-app.patch("/user", async (req,res) => {
-	const userId = req.body.userId;
+app.patch("/user/:userId", async (req,res) => {
+	const userId = req.params?.userId;
 	const data = req.body;
 	try{
-		await User.findByIdAndUpdate({_id: userId}, data);
+		const ALLOWED_UPDATES = ["about","skills","gender","lastName",];
+
+		const isUpdateAllowed = Object.keys(data).every((k) =>
+			ALLOWED_UPDATES.includes(k)
+		);
+		if(!isUpdateAllowed){
+			throw new Error("update not allowed")
+		}
+		const user = await User.findByIdAndUpdate({_id: userId}, data,{runValidators: true});
 		res.send("user details updated successfully");
 	}catch(err){
 		res.status(400).send("Something went wrong");
