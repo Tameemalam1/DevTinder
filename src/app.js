@@ -2,13 +2,24 @@ const express = require("express");
 const app = express();
 const connectDB = require("./config/database");
 const User = require("./model/user");
+const bcrypt = require('bcrypt');
+const { validateSingUpData } = require("./utils/validations");
 app.use(express.json()); //middleware 
 
 // post api
 app.post("/signup",async (req,res)=>{
-	const user = new User (req.body);
-
 	try{
+		validateSingUpData(req);
+		const {firstName, lastName, emailId, password } = req.body;
+
+		const passwordHash = await bcrypt.hash(password, 10);
+
+		const user = new User ({
+			firstName,
+			lastName,
+			emailId,
+			password: passwordHash,
+		});
 		await user.save();  
 		res.send("User added successfully");
 	}catch(err){
