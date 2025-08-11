@@ -7,7 +7,7 @@ const { validateSingUpData } = require("./utils/validations");
 app.use(express.json()); //middleware 
 
 // post api
-app.post("/signup",async (req,res)=>{
+app.post("/signup", async (req,res)=>{
 	try{
 		validateSingUpData(req);
 		const {firstName, lastName, emailId, password } = req.body;
@@ -26,6 +26,26 @@ app.post("/signup",async (req,res)=>{
 		res.status(400).send("error saving the user" + err.message);
 	};
     
+});
+
+// login api
+app.post("/login", async (req,res) => {
+	try{
+		const {emailId, password} = req.body;
+		const user = await User.findOne({emailId: emailId});
+		if(!user){
+			throw new Error("Invalid Credentials");
+		}
+		const isPasswordValid = await bcrypt.compare(password, user.password);
+		if (isPasswordValid) {
+			res.send("login successful !!");
+		}else{
+			throw new Error("Invalid Credentials");
+		}
+
+	}catch(err){
+		res.status(400).send("ERROR: "+ err.message);
+	};
 });
 
 // get api
