@@ -4,7 +4,12 @@ const connectDB = require("./config/database");
 const User = require("./model/user");
 const bcrypt = require('bcrypt');
 const { validateSingUpData } = require("./utils/validations");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
+const {userAuth} = require("./middlewares/auth");
+
 app.use(express.json()); //middleware 
+app.use(cookieParser());
 
 // post api
 app.post("/signup", async (req,res)=>{
@@ -36,8 +41,10 @@ app.post("/login", async (req,res) => {
 		if(!user){
 			throw new Error("Invalid Credentials");
 		}
-		const isPasswordValid = await bcrypt.compare(password, user.password);
+		const isPasswordValid = await user.isPasswordValid(password);
 		if (isPasswordValid) {
+			const token = await user.getJWT();
+			res.cookie("token",token,{expires: new Date(Date.now() + 8 * 3600000)});
 			res.send("login successful !!");
 		}else{
 			throw new Error("Invalid Credentials");
@@ -47,6 +54,21 @@ app.post("/login", async (req,res) => {
 		res.status(400).send("ERROR: "+ err.message);
 	};
 });
+
+// profile api
+
+app.get("/profile", userAuth,async (req,res) => {
+	try{
+		const user = req.user;
+		res.send(user);
+	}catch(err){
+		res.status(400).send("ERROR: "+ err.message);
+	};
+});
+
+app.get("/sendConnectionRequest", userAuth,async (req,res) =>{
+	res.send("connection request sent");
+})
 
 // get api
 app.get("/feed", async(req,res) => {
