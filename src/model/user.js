@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "This is about",
     },
-    Gender: {
+    gender: {
         type: String,
         validate(value) {
             if(!["male","female","others"]){
